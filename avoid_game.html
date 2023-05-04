@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>2023.05.01피하기 게임</title>
+    <style>
+      #canvas {
+        background-color: #1979ff;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <script>
+      const canvas = document.getElementById('canvas');
+      let ctx = canvas.getContext('2d');
+      canvas.width = 600;
+      canvas.height = 600;
+
+      //   ctx.fillstyle = 'black';
+      //   ctx.fillRect(10, 20, 50, 50);
+      //캔버스에 스타일, 상자 만들기(x,y,가로, 세로)
+
+      let chaImage = new Image();
+      chaImage.src = 'images/dragon.png';
+      //이미지 주소를 찾아서 src속성에 넣음
+
+      function drawOnImage(image, x, y, w, h) {
+        image.onload = function () {
+          ctx.drawImage(image, x, y, w, h);
+        };
+      }
+      //이미지를 그림
+
+      let character = {
+        x: 10,
+        y: 200,
+        width: 50,
+        height: 50,
+        draw() {
+          drawOnImage(chaImage, this.x, this.y, this.width, this.height);
+          //   이미지 삽입
+          ctx.drawImage(chaImage, this.x, this.y, this.width, this.height);
+        },
+      };
+      // character.draw();
+
+      let enemyImage = new Image();
+      enemyImage.src = 'images/enemy.png';
+      //적 이미지 주소
+
+      class Villain {
+        constructor() {
+          this.x = canvas.width - 50;
+          this.y = Math.floor(Math.random() * (canvas.height - 50));
+          this.width = 50;
+          this.height = 50;
+        }
+        draw() {
+          if (this.y <= 50) {
+            this.y += 50;
+          } else if (this.y >= canvas.height - 50) {
+            this.y -= 50;
+          }
+          // drawOnImage(enemyImage, this.x, this.y, this.width, this.height);
+          ctx.drawImage(enemyImage, this.x, this.y, this.width, this.height);
+        }
+      }
+
+      let timer = 0;
+      let villains = [];
+      let animation;
+      let up, down, left, right;
+      function frameAnimation() {
+        animation = requestAnimationFrame(frameAnimation);
+        timer++;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // ctx.fillstyle = '#12bbff';
+        // ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        if (timer % 30 === 0) {
+          let villainNew = new Villain();
+          villains.push(villainNew);
+        }
+        // https://www.w3schools.com/jsref/jsref_foreach.asp
+        villains.forEach((object, index, array) => {
+          if (object.x < 0) {
+            array.splice(index, 1);
+          }
+          object.x -= 2;
+          check(character, object);
+          object.draw();
+        });
+        if (up) {
+          up = false;
+          character.y -= 7;
+        }
+        if (down) {
+          down = false;
+          character.y += 7;
+        }
+        if (left) {
+          left = false;
+          character.x -= 7;
+        }
+        if (right) {
+          right = false;
+          character.x += 7;
+        }
+
+        character.draw();
+        if (timer == 600) cancelAnimationFrame(animation);
+      }
+      frameAnimation();
+
+      //  https://www.toptal.com/developers/keycode
+      // 키보드 이벤트 값 확인
+      document.addEventListener('keydown', (e) => {
+        // console.log(e.code);
+        if (e.code == 'ArrowUp') {
+          up = true;
+        } else if (e.code == 'ArrowDown') {
+          down = true;
+        } else if (e.code == 'ArrowLeft') {
+          left = true;
+        } else if (e.code == 'ArrowRight') {
+          right = true;
+        }
+      });
+      function check(character, Villain) {
+        let collsion = false;
+        if (
+          ((Villain.x <= character.x && character.x <= Villain.x + 50) || (Villain.x <= character.x + 50 && character.x + 50 <= Villain.x + 50)) &&
+          ((Villain.y <= character.y && character.y <= Villain.y + 50) || (Villain.y <= character.y + 50 && character.y + 50 <= Villain.y + 50))
+        ) {
+          collsion = true;
+        }
+        if (collsion) {
+          cancelAnimationFrame(animation);
+        }
+      }
+    </script>
+  </body>
+</html>
